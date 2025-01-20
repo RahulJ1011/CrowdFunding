@@ -1,10 +1,9 @@
-// SPDX-License-Identifier:MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {CrowdFunding} from "./CrowdFunding.sol";
 
-contract crowdFundingFactory
-{
+contract CrowdfundingFactory {
     address public owner;
     bool public paused;
 
@@ -15,54 +14,59 @@ contract crowdFundingFactory
         uint256 creationTime;
     }
 
-    Campaign[] public Campaigns;
+    Campaign[] public campaigns;
     mapping(address => Campaign[]) public userCampaigns;
 
-    modifier onlyOwner(){
-        require(msg.sender == owner, "Only the owner can call this function");
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner.");
         _;
     }
 
-    modifier notPaused(){
-        require(!paused,"Factory is paused");
+    modifier notPaused() {
+        require(!paused, "Factory is paused");
         _;
     }
-    constructor() public {
+
+    constructor() {
         owner = msg.sender;
     }
 
-    function createCampaign(string memory _name,string memory _description,uint256 _goal,uint256 _durationIndelays) external notPaused{
-        CrowdFunding newCapaign = new CrowdFunding(
+    function createCampaign(
+        string memory _name,
+        string memory _description,
+        uint256 _goal,
+        uint256 _durationInDays
+    ) external notPaused {
+        CrowdFunding newCampaign = new CrowdFunding(
+          
             _name,
             _description,
             _goal,
-            _durationIndelays,
-            msg.sender
+            _durationInDays,
+              msg.sender
         );
-        address campaignAddress = address(newCapaign);
+        address campaignAddress = address(newCampaign);
+
         Campaign memory campaign = Campaign({
             campaignAddress: campaignAddress,
             owner: msg.sender,
             name: _name,
-            creationTime:block.timestamp
+            creationTime: block.timestamp
         });
 
-        Campaigns.push(campaign);
+        campaigns.push(campaign);
         userCampaigns[msg.sender].push(campaign);
-
     }
 
-
-    function getUserCampaigns(address _user) external view returns(Campaign[] memory){
+    function getUserCampaigns(address _user) external view returns (Campaign[] memory) {
         return userCampaigns[_user];
     }
 
-    function getAllCampaigns() external view returns(Campaign[] memory){
-        return Campaigns;
+    function getAllCampaigns() external view returns (Campaign[] memory) {
+        return campaigns;
     }
 
-    function togglePause()external onlyOwner{
+    function togglePause() external onlyOwner {
         paused = !paused;
     }
-
 }

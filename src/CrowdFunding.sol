@@ -2,11 +2,13 @@
 pragma solidity ^0.8.0;
 
 contract CrowdFunding{
+   
     string public name;
     string public description;
     uint256 public goal;
     uint256 public deadline;
     address public owner;
+    bool public paused;
     enum CampaignState {
         Active,Successfull,Failed
     }
@@ -38,13 +40,18 @@ contract CrowdFunding{
         require(state == CampaignState.Active, "The campaign is not active");
         _;
     }
-     
-    constructor(string memory _name, string memory _description,uint256 _goal,uint256 _durationIndays){
+     modifier notPaused()
+     {
+        require(!paused, "The campaign is paused");
+        _;
+     }
+    constructor(string memory _name, string memory _description,uint256 _goal,uint256 _durationIndays, address _owner){
+
         name=_name;
         description=_description;
         goal = _goal;
         deadline = block.timestamp + (_durationIndays*1 days);
-        owner = msg.sender;
+        owner = _owner;
         state=CampaignState.Active;
     }
 
@@ -115,5 +122,26 @@ contract CrowdFunding{
 
     function hasFunded(address _backer,uint256 _tierIndex)public view returns(bool){
         return backers[_backer].fundedTiers[_tierIndex];
+    }
+    function getTiers() public view returns(Tier[] memory)
+    {
+        return tier;
+    }
+
+    function togglePaused() public onlyOwner{
+        paused = !paused;
+    }
+
+    function getCampaignStatus() public view returns (CampaignState)
+    {
+        if(state == CampaignState.Active && block.timestamp > deadline)
+        {
+            return address(this).balance>= goal ? CampaignState.Successfull : CampaignState.Failed;  
+        }
+        return state;
+    }
+
+    function extendedDeadline(uint256 _daysToAdd) public onlyOwner campaignOpen{
+        deadline+= _daysToAdd*1 days;
     }
 }

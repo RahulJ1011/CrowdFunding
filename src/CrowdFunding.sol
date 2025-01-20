@@ -15,4 +15,27 @@ contract CrowdFunding{
         deadline = block.timestamp + (_durationIndays*1 days);
         owner = msg.sender;
     }
+
+    function fund() public payable{
+        require(msg.value > 0,"Must fund amount greater than 0");
+        require(block.timestamp < deadline,"Fundraising period has ended");
+        require(msg.sender != owner,"Owner cannot fund");
+        // Add the amount to the total amount funded
+    }
+
+    function withdraw() public {
+        require(msg.sender == owner, "Only the owner can withdraw ");
+        require(address(this).balance >= goal,"Goal had not been reach");
+        
+        uint256 balance = address(this).balance;
+        require(balance > 0,"No balance to withdraw");
+
+        payable(owner).transfer(balance);
+    }
+
+    function getContractBalance() public view returns(uint256) {
+
+        return address(this).balance;   
+    }
+
 }
